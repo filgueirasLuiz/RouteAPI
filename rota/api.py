@@ -1,6 +1,6 @@
 from ninja import Router
-from .schemas import MotoristaSchema
-from .models import Motorista
+from .schemas import MotoristaSchema, AlunosSchema
+from .models import Motorista, Alunos
 from ninja.errors import HttpError
 from typing import List
 
@@ -33,3 +33,34 @@ def criar_motorista(request, motorista_schema : MotoristaSchema):
 def listar_motoristas(request):
     motoristas = Motorista.objects.all()
     return motoristas
+
+@rota_router.post('/aluno/', response={200: AlunosSchema})
+def criar_aluno(request, aluno_schema : AlunosSchema):
+    data = aluno_schema.dict()
+    nome = data['nome']
+    endereco = data['endereco']
+    cpf = data['cpf']
+    data_nascimento = data['data_nascimento']
+    telefone = data['telefone']
+    email = data['email']
+    matricula = data['matricula']
+    instituicao = data['instituicao']
+
+    if Alunos.objects.filter(email=email).exists():
+        raise HttpError(400, "Email já cadastrado")
+
+    aluno = Alunos(nome=nome,
+                   endereco=endereco,
+                   cpf=cpf,
+                   data_nascimento=data_nascimento,
+                   telefone=telefone,
+                   email=email,
+                   matricula=matricula,
+                   instituicao=instituicao)
+    aluno.save()
+
+    return aluno
+@rota_router.get('/alunos/', response=List[AlunosSchema])
+def listar_alunos(request):
+    alunos = Alunos.objects.all()
+    return alunos
