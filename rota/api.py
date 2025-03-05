@@ -2,6 +2,7 @@ from ninja import Router
 from .schemas import MotoristaSchema
 from .models import Motorista
 from ninja.errors import HttpError
+from typing import List
 
 rota_router = Router()
 
@@ -28,6 +29,7 @@ def criar_motorista(request, motorista_schema : MotoristaSchema):
 
     return motorista
 
+@rota_router.get('/motorista/', response=List[MotoristaSchema])
 def listar_motoristas(request):
     motoristas = Motorista.objects.all()
     return motoristas
