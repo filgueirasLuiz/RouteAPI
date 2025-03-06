@@ -1,6 +1,6 @@
 from ninja import Router
-from .schemas import MotoristaSchema, AlunosSchema
-from .models import Motorista, Alunos
+from .schemas import MotoristaSchema, AlunosSchema, VeiculoSchema, RotaSchema
+from .models import Motorista, Alunos, Veiculo, Rota
 from ninja.errors import HttpError
 from typing import List
 
@@ -64,3 +64,26 @@ def criar_aluno(request, aluno_schema : AlunosSchema):
 def listar_alunos(request):
     alunos = Alunos.objects.all()
     return alunos
+
+@rota_router.post('/veiculo/', response={200: VeiculoSchema})
+def criar_veiculo(request, payload: VeiculoSchema):
+    # Validação adicional (ex: placa única)
+    if Veiculo.objects.filter(placa=payload.placa).exists():
+        raise HttpError(400, "Placa já cadastrada")
+    veiculo = Veiculo.objects.create(**payload.dict())
+    return veiculo
+
+@rota_router.get('/veiculos/', response=list[VeiculoSchema])
+def listar_veiculos(request):
+    return Veiculo.objects.all()
+
+@rota_router.post('/rotas/', response={200: RotaSchema})
+def criar_rota(request, payload: RotaSchema):
+    rota = Rota.objects.create(**payload.dict())
+    return rota
+
+@rota_router.get('/rotas/', response=list[RotaSchema])
+def listar_rotas(request):
+    return Rota.objects.all()
+
+# ---- CRIAR FUNÇÃO DE VIAGEM 
