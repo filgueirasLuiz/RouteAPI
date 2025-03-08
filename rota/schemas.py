@@ -1,5 +1,6 @@
 from ninja import ModelSchema
-from .models import Motorista, Alunos, Veiculo, Rota
+from ninja import Schema
+from .models import *
 from datetime import datetime
 
 class MotoristaSchema(ModelSchema):
@@ -22,3 +23,10 @@ class RotaSchema(ModelSchema):
         model = Rota
         fields = ['nome', 'ponto_partida', 'ponto_destino', 'horario_saida', 'horario_chegada']
 
+class ConfirmacaoSchema(ModelSchema):
+    class Meta:
+        model = Confirmacao
+        fields = ['aluno', 'rota','confirmada', 'data_confirmacao', 'observacao']  
+
+class ConfirmacaoInputSchema(Schema):
+    observacao: str = None

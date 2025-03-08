@@ -62,6 +62,16 @@ class Rota(models.Model):
     horario_chegada = models.TimeField()  # Ex: "08:30"
     
     def __str__(self):
-        return self.nome
+        return self.nome 
+    
+    #--------------- ATUALIZAÇÃO -----------------------
 
-# ---- CRIAR FUNÇÃO DE VIAGEM 
+class Confirmacao(models.Model):
+    aluno = models.ForeignKey(Alunos, on_delete=models.CASCADE)
+    rota = models.ForeignKey(Rota, on_delete=models.CASCADE)
+    confirmada = models.BooleanField(default=False)  # Para registrar a presença
+    data_confirmacao = models.DateTimeField(auto_now_add=True)
+    observacao = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.aluno.nome} - {self.rota.nome} ({'Confirmado' if self.confirmada else 'Não Confirmado'})"
