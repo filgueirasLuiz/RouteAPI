@@ -66,7 +66,7 @@ class Rota(models.Model):
     
     #--------------- ATUALIZAÇÃO -----------------------
 
-class Confirmacao(models.Model):
+class Confirmacao(models.Model): 
     aluno = models.ForeignKey(Alunos, on_delete=models.CASCADE)
     rota = models.ForeignKey(Rota, on_delete=models.CASCADE)
     confirmada = models.BooleanField(default=False)  # Para registrar a presença

@@ -2,17 +2,44 @@ from ninja import Router
 from .schemas import *
 from .models import *
 from ninja.errors import HttpError
+from django.db import IntegrityError
 from typing import List
 
 rota_router = Router()
 
-@rota_router.post('', response={200: MotoristaSchema})
+@rota_router.post('/motorista/', response={200: MotoristaSchema})
 def criar_motorista(request, motorista_schema: MotoristaSchema):
     if Motorista.objects.filter(email=motorista_schema.email).exists():
         raise HttpError(400, "Email já cadastrado")
 
     motorista = Motorista.objects.create(**motorista_schema.dict())
     return motorista
+
+@rota_router.put('/motorista/{motorista_id}/', response={200: MotoristaSchema})
+def atualizar_motorista(request, motorista_id: int, motorista_schema: MotoristaSchema):
+    try:
+        motorista = Motorista.objects.get(id=motorista_id)
+
+        # Verifica se o email foi alterado e se já existe
+        if motorista.email != motorista_schema.email:
+            if Motorista.objects.filter(email=motorista_schema.email).exclude(id=motorista_id).exists():
+                raise HttpError(400, "Email já cadastrado por outro motorista")
+
+        # Atualiza todos os campos
+        for field, value in motorista_schema.dict().items():
+            setattr(motorista, field, value)
+
+        motorista.save()
+        return motorista
+
+    except Motorista.DoesNotExist:
+        raise HttpError(404, "Motorista não encontrado")
+    except IntegrityError:
+        raise HttpError(400, "Erro de integridade no banco de dados")
+
+
+
+
 
 @rota_router.get('/motorista/', response=List[MotoristaSchema])
 def listar_motoristas(request):
@@ -40,6 +67,22 @@ def criar_aluno(request, aluno_schema: AlunosSchema):
 def listar_alunos(request):
     alunos = Alunos.objects.all()
     return alunos
+
+@rota_router.put('/aluno/{aluno_id}/', response={200: AlunosSchema})
+def atualizar_aluno(request, aluno_id: int, aluno_schema: AlunosSchema):
+    try:
+        aluno = Alunos.objects.get(id=aluno_id)
+        
+        # Atualiza cada campo
+        for field, value in aluno_schema.dict().items():
+            setattr(aluno, field, value)
+            
+        aluno.save()
+        return aluno
+    except Alunos.DoesNotExist:
+        raise HttpError(404, "Aluno não encontrado")
+    except IntegrityError:
+        raise HttpError(400, "Email já cadastrado por outro aluno")
 
 @rota_router.delete('/aluno/{aluno_id}/', response={200: dict}) 
 def deletar_aluno(request, aluno_id: int):

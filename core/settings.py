@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rota',
+    'corsheaders',# para o front 
 ]
 
 MIDDLEWARE = [
@@ -48,7 +49,13 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',# para o front 
 ]
+
+CORS_ALLOWED_ORIGINS = [# para o front 
+    "http://localhost:3000",  # para o front 
+]
+CORS_ALLOW_CREDENTIALS = True  # para o front 
 
 ROOT_URLCONF = 'core.urls'
 

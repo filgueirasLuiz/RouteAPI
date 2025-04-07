@@ -6,12 +6,12 @@ from datetime import datetime
 class MotoristaSchema(ModelSchema):
     class Meta:
         model = Motorista
-        fields = ['nome', 'cpf', 'cnh', 'telefone', 'email', 'data_nascimento']
+        fields = ['id','nome', 'cpf', 'cnh', 'telefone', 'email', 'data_nascimento']
 
 class AlunosSchema(ModelSchema):
     class Meta:
         model = Alunos
-        fields = ['nome', 'endereco', 'cpf', 'data_nascimento', 'telefone', 'email', 'matricula', 'instituicao']
+        fields = ['id','nome', 'endereco', 'cpf', 'data_nascimento', 'telefone', 'email', 'matricula', 'instituicao']
 
 class VeiculoSchema(ModelSchema):
     class Meta:
