@@ -4,6 +4,7 @@ from .models import *
 from ninja.errors import HttpError
 from django.db import IntegrityError
 from typing import List
+from django.utils import timezone
 
 rota_router = Router()
 
@@ -36,10 +37,6 @@ def atualizar_motorista(request, motorista_id: int, motorista_schema: MotoristaS
         raise HttpError(404, "Motorista não encontrado")
     except IntegrityError:
         raise HttpError(400, "Erro de integridade no banco de dados")
-
-
-
-
 
 @rota_router.get('/motorista/', response=List[MotoristaSchema])
 def listar_motoristas(request):
@@ -105,6 +102,22 @@ def criar_veiculo(request, payload: VeiculoSchema):
 def listar_veiculos(request):
     return Veiculo.objects.all()
 
+@rota_router.put('/veiculos/{veiculo_id}/', response={200: VeiculoSchema})
+def atualizar_veiculo(request, veiculo_id: int, payload: VeiculoSchema):
+    try:
+        veiculo = Veiculo.objects.get(id=veiculo_id)
+
+        # Atualiza cada campo
+        for field, value in payload.dict().items():
+            setattr(veiculo, field, value)
+        veiculo.save()
+        return veiculo
+    except Veiculo.DoesNotExist:
+        raise HttpError(404, "Veículo não encontrado")
+    except IntegrityError:
+        raise HttpError(400, "Placa já cadastrada por outro veículo")
+
+
 @rota_router.delete('/veiculo/{veiculo_id}/', response={200: dict})   
 def deletar_veiculo(request, veiculo_id: int):
     try:
@@ -114,14 +127,29 @@ def deletar_veiculo(request, veiculo_id: int):
     except Veiculo.DoesNotExist:
         raise HttpError(404, "Veículo não encontrado")
 
-@rota_router.post('/rotas/', response={200: RotaSchema})
+@rota_router.post('/rota/', response={200: RotaSchema})
 def criar_rota(request, payload: RotaSchema):
     rota = Rota.objects.create(**payload.dict())
     return rota
 
-@rota_router.get('/rotas/', response=list[RotaSchema])
+@rota_router.get('/rota/', response=list[RotaSchema])
 def listar_rotas(request):
     return Rota.objects.all()
+
+@rota_router.put('/rota/{rota_id}/', response={200: RotaSchema})
+def atualizar_rota(request, rota_id: int, payload: RotaSchema):
+    try:
+        rota = Rota.objects.get(id=rota_id)
+
+        # Atualiza cada campo
+        for field, value in payload.dict().items():
+            setattr(rota, field, value)
+        rota.save()
+        return rota
+    except Rota.DoesNotExist:
+        raise HttpError(404, "Rota não encontrada")
+    except IntegrityError:
+        raise HttpError(400, "Erro de integridade no banco de dados")
 
 @rota_router.delete('/rota/{rota_id}/', response={200: dict})
 def deletar_rota(request, rota_id: int):
@@ -132,7 +160,7 @@ def deletar_rota(request, rota_id: int):
     except Rota.DoesNotExist:
         raise HttpError(404, "Rota não encontrada")
 
-@rota_router.post('/confirmar-presenca/{aluno_id}/{rota_id}/', response={200: ConfirmacaoSchema})
+@rota_router.post('/presenca/{aluno_id}/{rota_id}/', response={200: ConfirmacaoSchema})
 def confirmar_presenca(request, aluno_id: int, rota_id: int, dados: ConfirmacaoInputSchema):
     try:
         aluno = Alunos.objects.get(id=aluno_id)
@@ -143,7 +171,11 @@ def confirmar_presenca(request, aluno_id: int, rota_id: int, dados: ConfirmacaoI
             raise HttpError(400, "Presença já confirmada para esta rota")
 
         # Cria a confirmação de presença
-        confirmacao = Confirmacao.objects.create(aluno=aluno, rota=rota, observacao=dados.observacao)
+        confirmacao = Confirmacao.objects.create(aluno=aluno, 
+                                                 rota=rota, 
+                                                 confirmada=True, 
+                                                 data_confirmacao=timezone.now(), 
+                                                 observacao=dados.observacao)
 
         return confirmacao  # Retorna os dados do modelo ConfirmacaoSchema
     except Alunos.DoesNotExist:
@@ -154,12 +186,30 @@ def confirmar_presenca(request, aluno_id: int, rota_id: int, dados: ConfirmacaoI
         raise HttpError(500, f"Erro interno: {str(e)}")  # Captura outros erros
 
     
-@rota_router.get('/confirmacoes/', response=list[ConfirmacaoSchema])
+@rota_router.get('/presenca/', response=list[ConfirmacaoSchema])
 def listar_confirmacoes(request):
-    confirmacoes = Confirmacao.objects.all()
-    return confirmacoes
+    confirmacoes = Confirmacao.objects.select_related('aluno', 'rota').filter(confirmada=True)
+    results = []
 
-@rota_router.delete('/confirmar-presenca/{confirmacao_id}/', response={200: dict})
+    for c in confirmacoes:
+        results.append({
+            "id": c.id,
+            "aluno": {
+                "id": c.aluno.id,
+                "nome": c.aluno.nome,
+            },
+            "rota": {
+                "id": c.rota.id,
+                "nome": c.rota.nome,
+            },
+            "confirmada": c.confirmada,
+            "data_confirmacao": c.data_confirmacao,
+            "observacao": c.observacao,
+        })
+
+    return results
+
+@rota_router.delete('/presenca/{confirmacao_id}/', response={200: dict})
 def deletar_confirmacao(request, confirmacao_id: int):
     try:
         confirmacao = Confirmacao.objects.get(id=confirmacao_id)
