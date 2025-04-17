@@ -16,7 +16,7 @@ def criar_motorista(request, motorista_schema: MotoristaSchema):
     motorista = Motorista.objects.create(**motorista_schema.dict())
     return motorista
 
-@rota_router.put('/motorista/{motorista_id}/', response={200: MotoristaSchema})
+@rota_router.patch('/motorista/{motorista_id}/', response={200: MotoristaSchema})
 def atualizar_motorista(request, motorista_id: int, motorista_schema: MotoristaSchema):
     try:
         motorista = Motorista.objects.get(id=motorista_id)
@@ -32,7 +32,11 @@ def atualizar_motorista(request, motorista_id: int, motorista_schema: MotoristaS
 
         motorista.save()
         return motorista
-
+    except IntegrityError as e:
+        import traceback
+        traceback.print_exc()  # Isso imprimirá o stack trace completo no console do servidor
+        print(f"Erro de integridade detalhado: {str(e)}")
+        raise HttpError(400, f"Erro de integridade no banco de dados: {str(e)}")
     except Motorista.DoesNotExist:
         raise HttpError(404, "Motorista não encontrado")
     except IntegrityError:
