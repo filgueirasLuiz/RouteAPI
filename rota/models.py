@@ -2,8 +2,8 @@ from django.db import models
 
 class Motorista(models.Model):
     nome = models.CharField(max_length=100)
-    cpf = models.CharField(max_length=11)
-    cnh = models.CharField(max_length=11)
+    cpf = models.CharField(max_length=14)
+    cnh = models.CharField(max_length=16)
     telefone = models.CharField(max_length=11)
     email = models.EmailField(unique=True)
     data_nascimento = models.DateField()
@@ -17,7 +17,7 @@ class Alunos(models.Model):
     # colocar foto 
     nome = models.CharField(max_length=200)
     endereco = models.CharField(max_length=200)
-    cpf = models.CharField(max_length=11)
+    cpf = models.CharField(max_length=14)
     data_nascimento = models.DateField()
     telefone = models.CharField(max_length=11)
     email = models.EmailField(unique=True)
